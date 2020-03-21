@@ -6,22 +6,16 @@ data "aws_route53_zone" "external" {
   name = "blogformation.net"
 }
 
-# variable "www_domain_name" {
-#   default = "www.blogformation.net"
-# }
-
-# variable "root_domain_name" {
-#   default = "blogformation.net"
-# }
-
-variable "bucket_name" {
-  default = "blogformation"
+variable "www_domain_name" {
+  default = "www.blogformation.net"
 }
 
+variable "root_domain_name" {
+  default = "blogformation.net"
+}
 
-
-resource "aws_s3_bucket" "b" {
-  bucket = var.bucket_name
+resource "aws_s3_bucket" "www" {
+  bucket = var.www_domain_name
   acl    = "public-read"
   policy = <<POLICY
 {
@@ -32,7 +26,7 @@ resource "aws_s3_bucket" "b" {
       "Effect":"Allow",
       "Principal": "*",
       "Action":["s3:GetObject"],
-      "Resource":["arn:aws:s3:::${var.bucket_name}/*"]
+      "Resource":["arn:aws:s3:::${var.www_domain_name}/*"]
     }
   ]
 }
@@ -42,8 +36,8 @@ POLICY
   }
 }
 
-resource "aws_s3_bucket_object" "f" {
-  bucket       = aws_s3_bucket.b.id
+resource "aws_s3_bucket_object" "index" {
+  bucket       = aws_s3_bucket.www.id
   key          = "index.html"
   source       = "site/index.html"
   content_type = "text/html"
@@ -51,7 +45,8 @@ resource "aws_s3_bucket_object" "f" {
 }
 
 resource "aws_acm_certificate" "default" {
-  domain_name       = "blogformation.net"
+  domain_name       = "*.${var.root_domain_name}"
+  subject_alternative_names = [var.root_domain_name]
   validation_method = "DNS"
 }
 
@@ -70,23 +65,22 @@ resource "aws_acm_certificate_validation" "default" {
   ]
 }
 
-resource "aws_cloudfront_distribution" "cloudfront" {
+resource "aws_cloudfront_distribution" "www_distribution" {
   origin {
-    domain_name = aws_s3_bucket.b.bucket_regional_domain_name
-    origin_id   = var.bucket_name
+    domain_name = aws_s3_bucket.www.bucket_regional_domain_name
+    origin_id   = var.www_domain_name
   }
   enabled             = true
   is_ipv6_enabled     = true
   default_root_object = "index.html"
-  aliases             = ["blogformation.net"]
+  aliases             = [var.www_domain_name, var.root_domain_name]
 
   default_cache_behavior {
     viewer_protocol_policy = "redirect-to-https"
     compress               = true
     allowed_methods        = ["GET", "HEAD"]
     cached_methods         = ["GET", "HEAD"]
-    // This needs to match the `origin_id` above.
-    target_origin_id = var.bucket_name
+    target_origin_id = var.www_domain_name
     min_ttl          = 0
     default_ttl      = 86400
     max_ttl          = 31536000
@@ -112,14 +106,24 @@ resource "aws_cloudfront_distribution" "cloudfront" {
   }
 }
 
-
 resource "aws_route53_record" "www" {
   zone_id = data.aws_route53_zone.external.zone_id
-  name    = "blogformation.net"
+  name    = var.www_domain_name
   type    = "A"
   alias {
-    name                   = aws_cloudfront_distribution.cloudfront.domain_name
-    zone_id                = aws_cloudfront_distribution.cloudfront.hosted_zone_id
+    name                   = aws_cloudfront_distribution.www_distribution.domain_name
+    zone_id                = aws_cloudfront_distribution.www_distribution.hosted_zone_id
+    evaluate_target_health = false
+  }
+}
+
+resource "aws_route53_record" "root" {
+  zone_id = data.aws_route53_zone.external.zone_id
+  name    = var.root_domain_name
+  type    = "A"
+  alias {
+    name                   = aws_cloudfront_distribution.www_distribution.domain_name
+    zone_id                = aws_cloudfront_distribution.www_distribution.hosted_zone_id
     evaluate_target_health = false
   }
 }
