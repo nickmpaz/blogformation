@@ -1,30 +1,144 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-  <meta>
-    <meta charset="UTF-8">
-    <title>Hello World in Vue.js</title>
-  </meta>
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <link href="https://fonts.googleapis.com/css?family=Source+Code+Pro&display=swap" rel="stylesheet">
+    <!-- fontawesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 
+    <title>Blogformation</title>
+  </head>
   <body>
-	
-    <div id="hello-world-app">
-      <h1>{{ msg }}</h1>
+    
+    <div class="container-fluid">
+
+
+
+      
+      <div class="container-fluid w-75 text-center">
+        <h1 class="display-1 mt-5">Blogformation</h1>
+        <h1 class="display-5 mt-5">Generate a blog-style tutorial from your project's git commit history</h1>
+      </div>
+
+      
+
+      <div class="container-fluid w-75 mt-5">
+        <div class="row">
+          <div class="col-8">
+            <div class="input-group input-group-lg">
+              <div class="input-group-prepend">
+                <span class="input-group-text" id="basic-addon1">Public git repo</span>
+              </div>
+              <input type="text" class="form-control" placeholder="e.g. 'github.com/username/repository'" aria-label="Repo" aria-describedby="basic-addon1">
+            </div>
+          </div>
+          <div class="col-4 text-right">
+            <button type="button" class="btn btn-primary btn-lg">Generate</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="container-fluid w-75 mt-4">
+        <div class="progress">
+          <div class="progress-bar" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+        </div>
+      </div>
+
+
+      <div class="container-fluid w-75 mt-4">
+
+        <div class="card">
+          <div class="card-header">
+            Generated tutorial
+            <i class="fa fa-clone"></i>
+          </div>
+          <div class="card-body">
+            <p class="card-text">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Vehicula ipsum a arcu cursus vitae congue mauris rhoncus. Sit amet purus gravida quis blandit turpis cursus in hac. In est ante in nibh mauris cursus. Dui sapien eget mi proin sed. Eget mauris pharetra et ultrices. Consequat nisl vel pretium lectus quam id. Viverra mauris in aliquam sem fringilla ut morbi tincidunt augue. Nibh cras pulvinar mattis nunc sed blandit libero volutpat. Fringilla ut morbi tincidunt augue interdum velit euismod in.
+
+              Nec ullamcorper sit amet risus nullam. Cras pulvinar mattis nunc sed blandit libero volutpat sed cras. Eget dolor morbi non arcu. Lacus sed turpis tincidunt id aliquet. Venenatis tellus in metus vulputate eu. Purus semper eget duis at tellus at. At imperdiet dui accumsan sit amet. Gravida cum sociis natoque penatibus et magnis. Suspendisse in est ante in nibh mauris. Blandit cursus risus at ultrices mi tempus. Ipsum suspendisse ultrices gravida dictum fusce ut. Nibh tortor id aliquet lectus proin nibh. Elit at imperdiet dui accumsan sit amet nulla. Vulputate ut pharetra sit amet aliquam id. Egestas dui id ornare arcu odio ut. Ac turpis egestas sed tempus urna et. Sit amet massa vitae tortor condimentum lacinia quis.
+              
+              Ullamcorper eget nulla facilisi etiam dignissim diam quis. At lectus urna duis convallis convallis. Ut lectus arcu bibendum at varius. Sagittis aliquam malesuada bibendum arcu vitae elementum curabitur. Hac habitasse platea dictumst vestibulum rhoncus est pellentesque elit ullamcorper. Eget sit amet tellus cras adipiscing. Tortor vitae purus faucibus ornare suspendisse sed nisi lacus. In arcu cursus euismod quis. Tellus integer feugiat scelerisque varius morbi enim. Id venenatis a condimentum vitae sapien pellentesque habitant morbi tristique. Vel fringilla est ullamcorper eget. Phasellus faucibus scelerisque eleifend donec pretium vulputate sapien. Tincidunt dui ut ornare lectus sit amet est placerat in. In ornare quam viverra orci sagittis eu volutpat odio facilisis. Nulla facilisi nullam vehicula ipsum a arcu cursus. Suscipit tellus mauris a diam maecenas sed enim. A arcu cursus vitae congue mauris rhoncus aenean vel elit. Auctor eu augue ut lectus arcu bibendum at. Dui vivamus arcu felis bibendum ut tristique et egestas. Vitae tempus quam pellentesque nec nam aliquam sem.</p>
+          </div>
+        </div>
+      </div>
+      
+
     </div>
 
-    <script
-      src="//cdnjs.cloudflare.com/ajax/libs/vue/2.1.6/vue.min.js">
-    </script>
-
-    <script>
-      new Vue({
-        el: "#hello-world-app",
-        data() {
-          return {
-            msg: "Hello World!"
-          }
-        }
-      });
-    </script>
-
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
   </body>
+  <style type="text/css">
+    /* body { background: #25274D !important; } 
+    h1.display-1 {color: #AAABB8 !important;}
+    h1.display-2 {color: #29648a !important;} */
+    body { 
+      background: #262234 !important; 
+      font-family: 'Source Code Pro', monospace;
+    } 
+    h1.display-1 {color: rgb(172, 29, 255) !important;}
+    h1.display-5 {color: #564f6f !important;}
+    span.input-group-text {
+      color: #262234 !important;
+      background-color: #D1D7E0 !important;}
+    input {
+      background-color: #564f6f !important;
+      color: #D1D7E0 !important;
+      min-width: 10rem !important;
+      /* outline-color: #4C495D ; */
+    }
+
+    .form-control:focus {
+      border-color: rgb(172, 29, 255);
+      box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgb(172, 29, 255);
+    }
+
+    div.card-header {
+      color: #262234 !important;
+      background-color: #D1D7E0 !important;
+      font-size: 1.25rem !important;
+      padding: .5rem 1rem !important;
+        /* padding-top: 0.5rem !important;
+        padding-right: 1rem !important;
+        padding-bottom: 0.5rem !important;
+        padding-left: 1rem !important; */
+    }
+    div.card-body {
+      background-color: #564f6f !important;
+      color: #D1D7E0 !important;
+    }
+
+    .btn-primary,
+    .btn-primary:hover,
+    .btn-primary:active,
+    .btn-primary:visited,
+    .btn-primary:focus {
+        background-color: #D1D7E0;
+        border-color: #D1D7E0;
+        color: #262234 !important;
+        
+    }
+    div.progress {
+      background-color: #262234 !important; 
+    }
+
+    div.progress-bar {
+      background-color: rgb(172, 29, 255) !important;
+    }
+
+    div.card {
+      height: 20rem !important;
+      
+    }
+    div.card-body {
+      overflow-y: auto;
+    }
+ </style>
 </html>
