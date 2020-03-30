@@ -1,0 +1,114 @@
+{
+  
+  "Parameters" : {
+
+    "MyLambdaFunction" : {
+      "Type" : "String",
+      "Default" : "default_name",
+      "Description" : "lambda arn"
+    }, 
+
+    "MyLambdaFunctionURI" : {
+      "Type" : "String",
+      "Default" : "default_name",
+      "Description" : "lambda invoke arn"
+    }
+  },
+
+
+  "Resources": {
+
+
+    "MyApi": {
+      "Type": "AWS::ApiGatewayV2::Api",
+      "Properties": {
+        "Name": "MyApi",
+        "ProtocolType": "WEBSOCKET",
+        "RouteSelectionExpression": "$request.body.action"
+      }
+    },
+
+    "MyIntegration": {
+      "Type": "AWS::ApiGatewayV2::Integration",
+      "DependsOn": [
+        "MyApi"
+      ],
+      "Properties": {
+          "ApiId": {
+              "Ref": "MyApi"
+          },
+          "Description": "Lambda Integration",
+          "IntegrationType": "AWS_PROXY",
+          "IntegrationUri": {
+              "Ref": "MyLambdaFunctionURI"
+          }
+      }
+    },
+
+    "MyRoute": {
+      "Type": "AWS::ApiGatewayV2::Route",
+      "DependsOn": [
+          "MyIntegration",
+          "MyApi"
+      ],
+      "Properties": {
+          "ApiId": {
+              "Ref": "MyApi"
+          },
+          "RouteKey": "createblog",
+          "AuthorizationType": "NONE",
+          "Target": {
+              "Fn::Join": [
+                  "/",
+                  [
+                      "integrations",
+                      {
+                          "Ref": "MyIntegration"
+                      }
+                  ]
+              ]
+          }
+      }
+    },
+
+    "MyDeployment": {
+      "Type": "AWS::ApiGatewayV2::Deployment",
+      "DependsOn": [
+          "MyRoute"
+      ],
+      "Properties": {
+          "ApiId": {
+              "Ref": "MyApi"
+          }
+      }
+    },
+
+    "MyStage": {
+      "Type": "AWS::ApiGatewayV2::Stage",
+      "Properties": {
+          "StageName": "Prod",
+          "Description": "Prod Stage",
+          "DeploymentId": {
+              "Ref": "MyDeployment"
+          },
+          "ApiId": {
+              "Ref": "MyApi"
+          }
+      }
+    },
+
+    "permission": {
+      "Type": "AWS::Lambda::Permission",
+      "DependsOn": [
+        "MyApi"
+      ],
+      "Properties": {
+          "FunctionName": {
+              "Ref": "MyLambdaFunction"
+          },
+          "Action": "lambda:InvokeFunction",
+          "Principal": "apigateway.amazonaws.com"
+      }
+    }
+  }
+}
