@@ -128,90 +128,24 @@ resource "aws_route53_record" "root" {
   }
 }
 
-
-
-
-resource "aws_iam_role" "iam_for_lambda" {
-  name = "iam_for_lambda"
-
-  assume_role_policy = <<EOF
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Action": "sts:AssumeRole",
-      "Principal": {
-        "Service": "lambda.amazonaws.com"
-      },
-      "Effect": "Allow",
-      "Sid": ""
-    }
-  ]
+resource "aws_s3_bucket" "lambdazip" {
+  bucket = "blogformationzip"
+  acl    = "private"
 }
-EOF
+resource "aws_s3_bucket_object" "payload" {
+  bucket       = aws_s3_bucket.lambdazip.id
+  key          = "payload.zip"
+  source       = "lambda/lambda_function_payload.zip"
+  etag         = filemd5("lambda/lambda_function_payload.zip")
 }
-
-resource "aws_lambda_function" "test_lambda" {
-  filename      = "lambda/lambda_function_payload.zip"
-  function_name = "test_lambda"
-  role          = aws_iam_role.iam_for_lambda.arn
-  handler       = "handler.my_handler"  # code entrypoint
-  source_code_hash = filebase64sha256("lambda/lambda_function_payload.zip")
-  runtime = "python3.8"
-  depends_on = [aws_iam_role_policy_attachment.lambda_logs, aws_cloudwatch_log_group.example]
-}
-
-# This is to optionally manage the CloudWatch Log Group for the Lambda Function.
-# If skipping this resource configuration, also add "logs:CreateLogGroup" to the IAM policy below.
-resource "aws_cloudwatch_log_group" "example" {
-  name              = "/aws/lambda/test_lambda" ## FIXME USE A VARIABLE FOR LAMBDA FUNCTION NAME SO YOU DONT HAVE TO HARD CODE THIS AND SO YOU DONT CREATE A DEPENDENCY CYCLE
-  retention_in_days = 14
-}
-
-# See also the following AWS managed policy: AWSLambdaBasicExecutionRole
-resource "aws_iam_policy" "lambda_logging" {
-  name        = "lambda_logging"
-  path        = "/"
-  description = "IAM policy for logging from a lambda"
-
-  policy = <<EOF
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Action": [
-        "logs:CreateLogGroup",
-        "logs:CreateLogStream",
-        "logs:PutLogEvents"
-      ],
-      "Resource": "arn:aws:logs:*:*:*",
-      "Effect": "Allow"
-    }
-  ]
-}
-EOF
-}
-
-resource "aws_iam_role_policy_attachment" "lambda_logs" {
-  role       = aws_iam_role.iam_for_lambda.name
-  policy_arn = aws_iam_policy.lambda_logging.arn
-}
-
-# resource "aws_apigatewayv2_api" "gateway" {
-#   name                       = "example-websocket`-api"
-#   protocol_type              = "WEBSOCKET"
-#   route_selection_expression = "$request.body.action"
-# }
-
-
 
 resource "aws_cloudformation_stack" "cs" {
   name = "websocket-stack"
   parameters = {
-    MyLambdaFunction = aws_lambda_function.test_lambda.arn
-    MyLambdaFunctionURI = aws_lambda_function.test_lambda.invoke_arn
+    lambdabucket = aws_s3_bucket.lambdazip.id
+    lambdapayload = aws_s3_bucket_object.payload.key
   }
   template_body = file("./template.json")
   
-  capabilities = ["CAPABILITY_AUTO_EXPAND"]
+  capabilities = ["CAPABILITY_AUTO_EXPAND", "CAPABILITY_IAM"]
 }

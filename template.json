@@ -1,114 +1,159 @@
 {
-  
-  "Parameters" : {
-
-    "MyLambdaFunction" : {
-      "Type" : "String",
-      "Default" : "default_name",
-      "Description" : "lambda arn"
-    }, 
-
-    "MyLambdaFunctionURI" : {
-      "Type" : "String",
-      "Default" : "default_name",
-      "Description" : "lambda invoke arn"
+    "Parameters" : {
+        "lambdabucket" : {
+          "Type" : "String",
+          "Default" : "default bucket",
+          "Description" : "where lambda payload is stored"
+        },
+        "lambdapayload" : {
+            "Type" : "String",
+            "Default" : "default payload",
+            "Description" : "lambda payload"
+        }
+    },
+    "Resources": {
+        "SimpleChatWebSocket": {
+            "Type": "AWS::ApiGatewayV2::Api",
+            "Properties": {
+                "Name": "SimpleChatWebSocket",
+                "ProtocolType": "WEBSOCKET",
+                "RouteSelectionExpression": "$request.body.message"
+            }
+        },
+        "SendRoute": {
+            "Type": "AWS::ApiGatewayV2::Route",
+            "Properties": {
+                "ApiId": {
+                    "Ref": "SimpleChatWebSocket"
+                },
+                "RouteKey": "sendmessage",
+                "AuthorizationType": "NONE",
+                "OperationName": "SendRoute",
+                "Target": {
+                    "Fn::Join": [
+                        "/",
+                        [
+                            "integrations",
+                            {
+                                "Ref": "SendInteg"
+                            }
+                        ]
+                    ]
+                }
+            }
+        },
+        "SendInteg": {
+            "Type": "AWS::ApiGatewayV2::Integration",
+            "Properties": {
+                "ApiId": {
+                    "Ref": "SimpleChatWebSocket"
+                },
+                "Description": "Send Integration",
+                "IntegrationType": "AWS_PROXY",
+                "IntegrationUri": {
+                    "Fn::Sub": "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${SendMessageFunction.Arn}/invocations"
+                }
+            }
+        },
+        "Deployment": {
+            "Type": "AWS::ApiGatewayV2::Deployment",
+            "DependsOn": [
+                "SendRoute"
+            ],
+            "Properties": {
+                "ApiId": {
+                    "Ref": "SimpleChatWebSocket"
+                }
+            }
+        },
+        "Stage": {
+            "Type": "AWS::ApiGatewayV2::Stage",
+            "Properties": {
+                "StageName": "Prod",
+                "Description": "Prod Stage",
+                "DeploymentId": {
+                    "Ref": "Deployment"
+                },
+                "ApiId": {
+                    "Ref": "SimpleChatWebSocket"
+                }
+            }
+        },
+        "RootRole": {
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+                "AssumeRolePolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Principal": {
+                                "Service": [
+                                    "lambda.amazonaws.com"
+                                ]
+                            },
+                            "Action": [
+                                "sts:AssumeRole"
+                            ]
+                        }
+                    ]
+                },
+                "Path": "/",
+                "Policies": [
+                    {
+                        "PolicyName": "extrapolicy",
+                        "PolicyDocument": {
+                            "Version": "2012-10-17",
+                            "Statement": [
+                                {
+                                    "Effect": "Allow",
+                                    "Action": "*",
+                                    "Resource": "*"
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        },
+        "SendMessageFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+                "Handler": "handler.my_handler",
+                "Role": {
+                    "Fn::GetAtt": [
+                        "RootRole",
+                        "Arn"
+                    ]
+                },
+                "Code": {
+                    "S3Bucket" : {
+                        "Ref": "lambdabucket"
+                    },
+                    "S3Key" : {
+                        "Ref": "lambdapayload"
+                    }
+                },
+                "Layers": [
+                    "arn:aws:lambda:us-east-1:553035198032:layer:git:10"
+                ],
+                "Runtime": "python3.7",
+                "Timeout": 60
+            }
+        },
+        "SendMessagePermission": {
+            "Type": "AWS::Lambda::Permission",
+            "DependsOn": [
+                "SimpleChatWebSocket",
+                "SendMessageFunction"
+            ],
+            "Properties": {
+                "Action": "lambda:InvokeFunction",
+                "FunctionName": {
+                    "Ref": "SendMessageFunction"
+                },
+                "Principal": "apigateway.amazonaws.com"
+            }
+        }
     }
-  },
-
-
-  "Resources": {
-
-
-    "MyApi": {
-      "Type": "AWS::ApiGatewayV2::Api",
-      "Properties": {
-        "Name": "MyApi",
-        "ProtocolType": "WEBSOCKET",
-        "RouteSelectionExpression": "$request.body.action"
-      }
-    },
-
-    "MyIntegration": {
-      "Type": "AWS::ApiGatewayV2::Integration",
-      "DependsOn": [
-        "MyApi"
-      ],
-      "Properties": {
-          "ApiId": {
-              "Ref": "MyApi"
-          },
-          "Description": "Lambda Integration",
-          "IntegrationType": "AWS_PROXY",
-          "IntegrationUri": {
-              "Ref": "MyLambdaFunctionURI"
-          }
-      }
-    },
-
-    "MyRoute": {
-      "Type": "AWS::ApiGatewayV2::Route",
-      "DependsOn": [
-          "MyIntegration",
-          "MyApi"
-      ],
-      "Properties": {
-          "ApiId": {
-              "Ref": "MyApi"
-          },
-          "RouteKey": "createblog",
-          "AuthorizationType": "NONE",
-          "Target": {
-              "Fn::Join": [
-                  "/",
-                  [
-                      "integrations",
-                      {
-                          "Ref": "MyIntegration"
-                      }
-                  ]
-              ]
-          }
-      }
-    },
-
-    "MyDeployment": {
-      "Type": "AWS::ApiGatewayV2::Deployment",
-      "DependsOn": [
-          "MyRoute"
-      ],
-      "Properties": {
-          "ApiId": {
-              "Ref": "MyApi"
-          }
-      }
-    },
-
-    "MyStage": {
-      "Type": "AWS::ApiGatewayV2::Stage",
-      "Properties": {
-          "StageName": "Prod",
-          "Description": "Prod Stage",
-          "DeploymentId": {
-              "Ref": "MyDeployment"
-          },
-          "ApiId": {
-              "Ref": "MyApi"
-          }
-      }
-    },
-
-    "permission": {
-      "Type": "AWS::Lambda::Permission",
-      "DependsOn": [
-        "MyApi"
-      ],
-      "Properties": {
-          "FunctionName": {
-              "Ref": "MyLambdaFunction"
-          },
-          "Action": "lambda:InvokeFunction",
-          "Principal": "apigateway.amazonaws.com"
-      }
-    }
-  }
 }
