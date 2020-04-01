@@ -31,8 +31,9 @@
               <input type="text" class="form-control" placeholder="e.g. 'https://github.com/nickmpaz/bf-example.git'" aria-label="Repo" aria-describedby="basic-addon1">
             </div>
           </div>
-          <div class="col-auto text-right">
+          <div class="col-auto">
             <button id="generate-button" type="button" class="btn btn-primary btn-lg">Generate</button>
+            <button id="cancel-button" type="button" class="btn btn-primary btn-lg" style="display: none; white-space: pre;"> Cancel </button>
           </div>
         </div>
       </div>
@@ -85,6 +86,8 @@
             $('.progress-bar').attr('aria-valuenow', dict.data);
           }
         } else if (dict.message === "blog") {
+          $('#cancel-button').hide();
+          $('#generate-button').show();
           $('.progress-bar').css('width', '0%');
           $('.progress-bar').attr('aria-valuenow', 0);
           $('.card-text').text(dict.data);
@@ -99,9 +102,23 @@
         webSocket.send(JSON.stringify(msg));
       };
 
+      $('#cancel-button').click(function() {
+        $('#cancel-button').hide();
+        $('#generate-button').show();
+        $('.progress-bar').css('width', '0%');
+        $('.progress-bar').attr('aria-valuenow', 0);
+        webSocket.close();
+      });
+
     }
 
-    $('#generate-button').click(generateBlog);
+    $('#generate-button').click(function() {
+      $('#generate-button').hide();
+      $('#cancel-button').show();
+      $('.card-text').text('');
+      generateBlog();
+
+    });
     
 
   </script>
@@ -170,7 +187,7 @@
     }
 
     .card-text {
-      white-space: pre-line !important;
+      white-space: pre !important;
     }
 
     #info {color: rgb(172, 29, 255) !important;}
