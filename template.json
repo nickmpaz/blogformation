@@ -9,6 +9,21 @@
             "Type" : "String",
             "Default" : "default payload",
             "Description" : "lambda payload"
+        },
+        "certificatearn" : {
+            "Type" : "String",
+            "Default" : "certificate arn",
+            "Description" : "certificate arn"
+        },
+        "rootdomainname" : {
+            "Type" : "String",
+            "Default" : "root domain name",
+            "Description" : "root domain name"
+        },
+        "hostedzone" : {
+            "Type" : "String",
+            "Default" : "hosted zone",
+            "Description" : "hosted zone"
         }
     },
     "Resources": {
@@ -77,6 +92,70 @@
                 "ApiId": {
                     "Ref": "SimpleChatWebSocket"
                 }
+            }
+        },
+        "MyDomainName": {
+            "Type": "AWS::ApiGatewayV2::DomainName",
+            "Properties": {
+                "DomainName": {
+                    "Fn::Join": [
+                        ".",
+                        [
+                            "api",
+                            {
+                                "Ref": "rootdomainname"
+                            }
+                        ]
+                    ]
+                },
+                "DomainNameConfigurations": [
+                    {
+                        "EndpointType": "REGIONAL",
+                        "CertificateArn": {
+                            "Ref": "certificatearn"
+                        }
+                    }
+                ]
+            }
+        },
+        "SimpleChatWebSocketMapping": {
+            "Type": "AWS::ApiGatewayV2::ApiMapping",
+            "Properties": {
+                "DomainName": {
+                    "Ref": "MyDomainName"
+                },
+                "ApiId": {
+                    "Ref": "SimpleChatWebSocket"
+                },
+                "Stage": {
+                    "Ref": "Stage"
+                }
+            }
+        },
+        "myDNSRecord" : {
+            "Type" : "AWS::Route53::RecordSet",
+            "Properties" : {
+               "HostedZoneId" : {
+                    "Ref": "hostedzone"
+                },
+                "Name" : {
+                    "Ref": "MyDomainName"
+                },
+                "AliasTarget": {
+                    "DNSName" : {
+                        "Fn::GetAtt": [
+                            "MyDomainName",
+                            "RegionalDomainName"
+                        ]
+                    },
+                    "HostedZoneId" : {
+                        "Fn::GetAtt": [
+                            "MyDomainName",
+                            "RegionalHostedZoneId"
+                        ]
+                    }
+                },
+                "Type" : "A"
             }
         },
         "RootRole": {

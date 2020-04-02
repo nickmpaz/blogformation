@@ -6,6 +6,8 @@ from tempfile import TemporaryDirectory
 from subprocess import run, check_output, CalledProcessError
 import boto3
 
+CLONE_ERROR = "Could not clone this repository. It is either not public, or doesn't exist."
+
 class ChangedFile():
 
     def __init__(self, name: str, diff: str):
@@ -26,10 +28,15 @@ class Step():
 
 def _send_to_connection(data, event):
     gatewayapi = boto3.client("apigatewaymanagementapi",
-                              endpoint_url="https://" + event["requestContext"]["domainName"] +
-                              "/" + event["requestContext"]["stage"])
+                              endpoint_url="https://api.blogformation.net")
     return gatewayapi.post_to_connection(ConnectionId=event["requestContext"].get("connectionId"),
                                          Data=json.dumps(data).encode('utf-8'))
+
+def _send_error(error, event):
+    _send_to_connection({
+        'message': 'error',
+        'data': error
+    }, event)
 
 def my_handler(event, context):
 
@@ -41,6 +48,7 @@ def my_handler(event, context):
         try:
             clone_process = run(['git', 'clone', repo, tmpdir], capture_output=True, check=True)
         except CalledProcessError as e:
+            _send_error(CLONE_ERROR, event)
             raise e
         try:
             commits_process = run(['git', '-C', tmpdir, "rev-list", "master", "--reverse"], capture_output=True, check=True)

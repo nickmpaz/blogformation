@@ -144,6 +144,9 @@ resource "aws_cloudformation_stack" "cs" {
   parameters = {
     lambdabucket = aws_s3_bucket.lambdazip.id
     lambdapayload = aws_s3_bucket_object.payload.key
+    certificatearn = aws_acm_certificate_validation.default.certificate_arn
+    rootdomainname = var.root_domain_name
+    hostedzone = data.aws_route53_zone.external.id
   }
   template_body = file("./template.json")
   
