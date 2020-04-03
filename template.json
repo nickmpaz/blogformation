@@ -198,7 +198,7 @@
         "SendMessageFunction": {
             "Type": "AWS::Lambda::Function",
             "Properties": {
-                "Handler": "handler.my_handler",
+                "Handler": "handler.handler",
                 "Role": {
                     "Fn::GetAtt": [
                         "RootRole",
@@ -211,6 +211,11 @@
                     },
                     "S3Key" : {
                         "Ref": "lambdapayload"
+                    }
+                },
+                "Environment": {
+                    "Variables" : {
+                        "PROD" : 1
                     }
                 },
                 "Layers": [

@@ -2,122 +2,114 @@ import json
 import time
 import pathlib
 import os
+import logging
 from tempfile import TemporaryDirectory
 from subprocess import run, check_output, CalledProcessError
 import boto3
 
+logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.DEBUG)
+
+PROD = os.environ.get('PROD')
 API_ENDPOINT = "https://api.blogformation.net"
+
+BLOG = 'blog'
+PROGRESS = 'progress'
+ERROR = 'error'
 CLONE_ERROR = "Could not clone this repository. It is either not public, or doesn't exist."
+PROCESSING_ERROR = "There was an error while processing this repository."
+OK = {
+    'statusCode': 200,
+    'headers': {'Content-Type': 'application/json'},
+    'body': ''
+}
 
 
-class ChangedFile():
-
-    def __init__(self, name: str, diff: str):
-        self.name = name
-        self.diff = diff
-
-    def __str__(self):
-        return self.name
-
-
-class Step():
-
-    def __init__(self, message: str, changes: list):
-        self.message = message
-        self.changes = changes
-
-    def __str__(self):
-        return self.message
+def send_to_connection(message, data, event):
+    if PROD:
+        payload = json.dumps(
+            {'message': message, 'data': data}).encode('utf-8')
+        gatewayapi = boto3.client(
+            "apigatewaymanagementapi", endpoint_url=API_ENDPOINT)
+        connection = event["requestContext"].get("connectionId")
+        gatewayapi.post_to_connection(ConnectionId=connection, Data=payload)
+    else:
+        logging.info(
+            "Sending to connection\n\tMessage: %s\n\tData: %s" % (message, data))
 
 
-def _send_to_connection(data, event):
-    gatewayapi = boto3.client("apigatewaymanagementapi", endpoint_url=API_ENDPOINT)
-    return gatewayapi.post_to_connection(ConnectionId=event["requestContext"].get("connectionId"),
-                                         Data=json.dumps(data).encode('utf-8'))
-
-
-def _send_error(error, event):
-    _send_to_connection({
-        'message': 'error',
-        'data': error
-    }, event)
-
-
-def my_handler(event, context):
-
-    test = event.get('test')
-
-    repo = json.loads(event.get("body")).get('data')
+def handler(event, context):
+    if PROD:
+        repo = json.loads(event.get("body")).get('data')
+    else:
+        repo = 'https://github.com/nickmpaz/freereads.git'
 
     with TemporaryDirectory() as tmpdir:
         try:
+            logging.info("Cloning " + repo)
             clone_process = run(['git', 'clone', repo, tmpdir],
                                 capture_output=True, check=True)
         except CalledProcessError as e:
-            _send_error(CLONE_ERROR, event)
-            raise e
+            logging.warning("Error cloning " + repo)
+            send_to_connection(ERROR, CLONE_ERROR, event)
+            return OK
         try:
+            logging.info("Processing commits")
             commits_process = run(['git', '-C', tmpdir, "rev-list",
                                    "master", "--reverse"], capture_output=True, check=True)
+            commits_raw = commits_process.stdout.decode('utf-8')
+            commits = commits_raw.split('\n')[:-1]
         except CalledProcessError as e:
-            raise e
-        commits_raw = commits_process.stdout.decode('utf-8')
-        commits = commits_raw.split('\n')[:-1]
+            logging.warning("Error processing commits")
+            send_to_connection(ERROR, PROCESSING_ERROR, event)
+            return OK
+
         steps = []
 
         for i in range(1, len(commits)):
 
             current_commit = commits[i]
             previous_commit = commits[i-1]
+
             try:
+                logging.info("Getting commit message for commit %s" %
+                             current_commit)
                 commit_message_process = run(
                     ['git', '-C', tmpdir, 'show', '-s', '--format=%B', current_commit], capture_output=True, check=True)
+                commit_message = commit_message_process.stdout.decode(
+                    'utf-8').strip()
             except CalledProcessError as e:
-                raise e
-            commit_message = commit_message_process.stdout.decode(
-                'utf-8').strip()
+                logging.warning(
+                    "Error getting commit message for commit %s" % current_commit)
+                send_to_connection(ERROR, PROCESSING_ERROR, event)
+                return OK
+
             try:
-                changed_files_process = run(['git', '-C', tmpdir, 'diff-tree', '-r', '--no-commit-id',
-                                             '--name-only', current_commit], capture_output=True, check=True)
+                logging.info("Diffing commit %s" % current_commit)
+                commit_diff_process = run(
+                    ['git', '-C', tmpdir, 'diff', previous_commit, current_commit], capture_output=True, check=True)
+                commit_diff = commit_diff_process.stdout.decode('utf-8')
             except CalledProcessError as e:
-                raise e
-            changed_files_raw = changed_files_process.stdout.decode('utf-8')
-            changed_files = changed_files_raw.split('\n')[:-1]
-            changes = []
-            for f in changed_files:
-                try:
-                    file_diff_process = run(['git', '-C', tmpdir, 'diff', '--color-words',
-                                             previous_commit, current_commit, f], capture_output=True, check=True)
-                except CalledProcessError as e:
-                    raise e
-                file_diff = file_diff_process.stdout.decode('utf-8')
-                changes.append(ChangedFile(f, file_diff))
-            steps.append(Step(commit_message, changes))
+                logging.warning("Error diffing commit %s" % current_commit)
+                send_to_connection(ERROR, PROCESSING_ERROR, event)
+                return OK
 
-            if not test:
-                _send_to_connection({
-                    'message': 'progress',
-                    'data': int((i / len(commits)) * 100)
-                }, event)
+            steps.append([commit_message, commit_diff])
+            send_to_connection(PROGRESS, int((i / len(commits)) * 100), event)
 
-    blog_str = ''
+    try:
+        logging.info('Building blog')
+        blog_str = ''
+        for i, step in enumerate(steps):
+            blog_str += 'Step %d: %s\n\n' % (i + 1, step[0])
+            current_step_diff = step[1]
+            blog_str += '\n'.join(['\t' +
+                                   line for line in current_step_diff.split('\n')]) + '\n'
 
-    for step in steps:
-        blog_str += 'MESSAGE: ' + step.message + '\n\n'
-        for change in step.changes:
-            blog_str += '\tCHANGE: ' + change.name + '\n\n'
-            blog_str += '\n'.join(['\t\t' +
-                                   line for line in change.diff.split('\n')]) + '\n'
-        blog_str += '=========================================================\n\n'
+        send_to_connection(BLOG, blog_str, event)
+    except Exception as e:
+        logging.warning('Error building blog')
+        send_to_connection(ERROR, PROCESSING_ERROR, event)
+        return OK
 
-    if not test:
-        _send_to_connection({
-            'message': 'blog',
-            'data': blog_str
-        }, event)
-
-    return {
-        'statusCode': 200,
-        'headers': {'Content-Type': 'application/json'},
-        'body': ''
-    }
+    logging.info('Done, returning')
+    return OK

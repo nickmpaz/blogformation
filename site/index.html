@@ -164,7 +164,7 @@
             } else if (dict.message === "Internal server error") {
                 showModal(
                     'Internal server error',
-                    "We didn't plan for this error :("
+                    "Your repository may be too large."
                 );
                 $('#cancel-button').hide();
                 $('#generate-button').show();
@@ -214,7 +214,7 @@
             $('#generate-button').hide();
             $('#cancel-button').show();
             $('.card-text').text('');
-            repo = $('.form-control').val() ? $('.form-control').val() : "https://github.com/nickmpaz/freereads.git";
+            repo = $('.form-control').val() ? $('.form-control').val() : "https://github.com/nickmpaz/bf-example.git";
             generateBlog(repo);
         });
 
