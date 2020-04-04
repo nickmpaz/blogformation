@@ -39,9 +39,9 @@ POLICY
 resource "aws_s3_bucket_object" "index" {
   bucket       = aws_s3_bucket.www.id
   key          = "index.html"
-  source       = "site/index.html"
+  source       = "frontend/index.html"
   content_type = "text/html"
-  etag         = filemd5("site/index.html")
+  etag         = filemd5("frontend/index.html")
 }
 
 resource "aws_acm_certificate" "default" {
@@ -135,8 +135,8 @@ resource "aws_s3_bucket" "lambdazip" {
 resource "aws_s3_bucket_object" "payload" {
   bucket       = aws_s3_bucket.lambdazip.id
   key          = "payload.zip"
-  source       = "lambda/lambda_function_payload.zip"
-  etag         = filemd5("lambda/lambda_function_payload.zip")
+  source       = "backend/lambda_function_payload.zip"
+  etag         = filemd5("backend/lambda_function_payload.zip")
 }
 
 resource "aws_cloudformation_stack" "cs" {
@@ -148,7 +148,7 @@ resource "aws_cloudformation_stack" "cs" {
     rootdomainname = var.root_domain_name
     hostedzone = data.aws_route53_zone.external.id
   }
-  template_body = file("./template.json")
+  template_body = file("./websocket-template.json")
   
   capabilities = ["CAPABILITY_AUTO_EXPAND", "CAPABILITY_IAM"]
 }

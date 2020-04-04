@@ -66,7 +66,7 @@
                 "Description": "Send Integration",
                 "IntegrationType": "AWS_PROXY",
                 "IntegrationUri": {
-                    "Fn::Sub": "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${SendMessageFunction.Arn}/invocations"
+                    "Fn::Sub": "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${GenerateBlog.Arn}/invocations"
                 }
             }
         },
@@ -195,7 +195,7 @@
                 ]
             }
         },
-        "SendMessageFunction": {
+        "GenerateBlog": {
             "Type": "AWS::Lambda::Function",
             "Properties": {
                 "Handler": "handler.handler",
@@ -229,12 +229,12 @@
             "Type": "AWS::Lambda::Permission",
             "DependsOn": [
                 "SimpleChatWebSocket",
-                "SendMessageFunction"
+                "GenerateBlog"
             ],
             "Properties": {
                 "Action": "lambda:InvokeFunction",
                 "FunctionName": {
-                    "Ref": "SendMessageFunction"
+                    "Ref": "GenerateBlog"
                 },
                 "Principal": "apigateway.amazonaws.com"
             }

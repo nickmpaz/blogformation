@@ -11,7 +11,6 @@ logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.DEBUG)
 
 PROD = os.environ.get('PROD')
 API_ENDPOINT = "https://api.blogformation.net"
-
 BLOG = 'blog'
 PROGRESS = 'progress'
 ERROR = 'error'
@@ -41,7 +40,7 @@ def handler(event, context):
     if PROD:
         repo = json.loads(event.get("body")).get('data')
     else:
-        repo = 'https://github.com/nickmpaz/freereads.git'
+        repo = 'https://github.com/nickmpaz/bf-example.git'
 
     with TemporaryDirectory() as tmpdir:
         try:
@@ -107,7 +106,7 @@ def handler(event, context):
 
         send_to_connection(BLOG, blog_str, event)
     except Exception as e:
-        logging.warning('Error building blog')
+        logging.warning(e)
         send_to_connection(ERROR, PROCESSING_ERROR, event)
         return OK
 

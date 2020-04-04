@@ -37,9 +37,8 @@
                 </div>
                 <div class="col-auto">
                     <button id="generate-button" type="button" class="btn btn-secondary btn-lg">Generate</button>
-                    <button id="cancel-button" type="button" class="btn btn-secondary btn-lg"
-                        style="display: none;"> 
-                            Cancel 
+                    <button id="cancel-button" type="button" class="btn btn-secondary btn-lg" style="display: none;">
+                        Cancel
                         <div id="spinner" class="spinner-border spinner-border-sm align-middle" role="status">
                             <span class="sr-only">Loading...</span>
                         </div i>
@@ -60,16 +59,19 @@
                 <div class="card-header">
                     <div class="container-fluid">
                         <div class="row">
-                          <div class="col-sm">
-                            Generated tutorial
-                          </div>
-                          <div class="col-auto">
-                            <i id="copy" class="fa fa-clone mr-2" data-toggle="tooltip" data-placement="top" title="Copy" style="cursor: pointer;"></i>
-                            <i id="expand" class="fa fa-plus" data-toggle="tooltip" data-placement="top" title="Show" style="cursor: pointer; display: none;"></i>
-                            <i id="contract" class="fa fa-minus" data-toggle="tooltip" data-placement="top" title="Hide" style="cursor: pointer;"></i>
-                          </div>
+                            <div class="col-sm">
+                                Generated tutorial
+                            </div>
+                            <div class="col-auto">
+                                <i id="copy" class="fa fa-clone mr-2" data-toggle="tooltip" data-placement="top"
+                                    title="Copy" style="cursor: pointer;"></i>
+                                <i id="expand" class="fa fa-plus" data-toggle="tooltip" data-placement="top"
+                                    title="Show" style="cursor: pointer; display: none;"></i>
+                                <i id="contract" class="fa fa-minus" data-toggle="tooltip" data-placement="top"
+                                    title="Hide" style="cursor: pointer;"></i>
+                            </div>
                         </div>
-                      </div>
+                    </div>
                 </div>
                 <div class="card-body">
                     <p class="card-text"></p>
@@ -218,10 +220,10 @@
             generateBlog(repo);
         });
 
-        $('#copy').click(function () { 
-            copyToClipboard($('.card-text').text()); 
+        $('#copy').click(function () {
+            copyToClipboard($('.card-text').text());
         });
-        
+
         $('#expand').click(function () {
             $('#expand').hide();
             $('#contract').show();
@@ -305,6 +307,7 @@
     #text-area {
         min-height: 20rem !important;
     }
+
     .card-text {
         white-space: pre !important;
     }
@@ -349,6 +352,7 @@
     #generate-button {
         width: 10rem !important;
     }
+
     #cancel-button {
         width: 10rem !important;
     }
@@ -356,8 +360,6 @@
     #spinner {
         color: #262234 !important;
     }
-    
-
 </style>
 
 </html>
