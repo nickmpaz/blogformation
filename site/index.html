@@ -11,20 +11,18 @@
     <link href="https://fonts.googleapis.com/css?family=Source+Code+Pro&display=swap" rel="stylesheet">
     <!-- fontawesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-
     <title>Blogformation</title>
 </head>
 
 <body>
-
     <div class="container-fluid">
-
+        <!-- heading -->
         <div class="container-fluid w-75 text-center mt-5">
             <h1 id="title" class="display-1 text-wrap">Blogformation</h1>
             <h1 id="subtitle" class="display-5 mt-5">Generate a blog-style tutorial from your project's git commit
                 history</h1>
         </div>
-
+        <!-- input -->
         <div class="container-fluid w-75 mt-5">
             <div class="row">
                 <div class="col">
@@ -38,33 +36,47 @@
                     </div>
                 </div>
                 <div class="col-auto">
-                    <button id="generate-button" type="button" class="btn btn-primary btn-lg">Generate</button>
-                    <button id="cancel-button" type="button" class="btn btn-primary btn-lg"
-                        style="display: none; white-space: pre;"> Cancel </button>
+                    <button id="generate-button" type="button" class="btn btn-secondary btn-lg">Generate</button>
+                    <button id="cancel-button" type="button" class="btn btn-secondary btn-lg"
+                        style="display: none;"> 
+                            Cancel 
+                        <div id="spinner" class="spinner-border spinner-border-sm align-middle" role="status">
+                            <span class="sr-only">Loading...</span>
+                        </div i>
+                    </button>
                 </div>
             </div>
         </div>
-
+        <!-- progress bar -->
         <div class="container-fluid w-75 mt-4">
             <div class="progress">
                 <div class="progress-bar" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0"
                     aria-valuemax="100"></div>
             </div>
         </div>
-
+        <!-- text area -->
         <div class="container-fluid w-75 mt-4">
-
-            <div class="card">
+            <div id="text-area" class="card">
                 <div class="card-header">
-                    Generated tutorial
-                    <i class="fa fa-clone"></i>
-
+                    <div class="container-fluid">
+                        <div class="row">
+                          <div class="col-sm">
+                            Generated tutorial
+                          </div>
+                          <div class="col-auto">
+                            <i id="copy" class="fa fa-clone mr-2" data-toggle="tooltip" data-placement="top" title="Copy" style="cursor: pointer;"></i>
+                            <i id="expand" class="fa fa-plus" data-toggle="tooltip" data-placement="top" title="Show" style="cursor: pointer; display: none;"></i>
+                            <i id="contract" class="fa fa-minus" data-toggle="tooltip" data-placement="top" title="Hide" style="cursor: pointer;"></i>
+                          </div>
+                        </div>
+                      </div>
                 </div>
                 <div class="card-body">
                     <p class="card-text"></p>
                 </div>
             </div>
         </div>
+        <!-- github link -->
         <div class="container-fluid w-75 text-center mt-5">
             <a id="link-anchor" href="https://github.com/nickmpaz/blogformation">
                 <i id="link-icon" class="fa fa-external-link fa-2x d-inline mr-3"></i>
@@ -72,7 +84,6 @@
             </a>
         </div>
     </div>
-
     <!-- Modal -->
     <div class="modal fade" id="error-modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle"
         aria-hidden="true">
@@ -92,7 +103,6 @@
             </div>
         </div>
     </div>
-
     <!-- Optional JavaScript -->
     <!-- jQuery first, then Popper.js, then Bootstrap JS -->
     <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js"
@@ -106,18 +116,22 @@
         crossorigin="anonymous"></script>
 </body>
 <script>
-
+    function copyToClipboard(text) {
+        var $temp = $("<input>");
+        $("body").append($temp);
+        $temp.val(text).select();
+        document.execCommand("copy");
+        $temp.remove();
+    }
     function setBlankText() {
         text = repo = $('.form-control').val() ? '' : "Click 'Generate' to try it with the example!";
         $('.card-text').text(text);
     };
-
     function showModal(title, body) {
         $('#modal-title').text(title);
         $('#modal-body').text(body);
         $('#error-modal').modal('show');
     }
-
     function generateBlog(repo) {
         var webSocket = new WebSocket('wss://api.blogformation.net');
         console.log(repo);
@@ -160,7 +174,6 @@
                 setBlankText();
             }
         }
-
         webSocket.onerror = function (event) {
             showModal(
                 "WebSocket error",
@@ -173,7 +186,6 @@
             webSocket.close();
             setBlankText();
         };
-        // when websocket opens, send request with git repo
         webSocket.onopen = function (event) {
             var msg = {
                 message: "sendmessage",
@@ -181,7 +193,6 @@
             };
             webSocket.send(JSON.stringify(msg));
         };
-
         $('#cancel-button').click(function () {
             $('#cancel-button').hide();
             $('#generate-button').show();
@@ -190,10 +201,11 @@
             webSocket.close();
             setBlankText();
         });
-
     }
-
     $(document).ready(function () {
+        $(function () {
+            $('[data-toggle="tooltip"]').tooltip()
+        })
         setBlankText();
         $('.form-control').keyup(function () {
             setBlankText();
@@ -205,10 +217,24 @@
             repo = $('.form-control').val() ? $('.form-control').val() : "https://github.com/nickmpaz/freereads.git";
             generateBlog(repo);
         });
+
+        $('#copy').click(function () { 
+            copyToClipboard($('.card-text').text()); 
+        });
+        
+        $('#expand').click(function () {
+            $('#expand').hide();
+            $('#contract').show();
+            $('#text-area').css('max-height', 'none');
+        });
+
+        $('#contract').click(function () {
+            $('#contract').hide();
+            $('#expand').show();
+            $('#text-area').css('max-height', '20rem');
+
+        });
     });
-
-
-
 
 </script>
 <style type="text/css">
@@ -254,15 +280,14 @@
         color: #D1D7E0 !important;
     }
 
-    .btn-primary,
-    .btn-primary:hover,
-    .btn-primary:active,
-    .btn-primary:visited,
-    .btn-primary:focus {
+    .btn-secondary,
+    .btn-secondary:hover,
+    .btn-secondary:active,
+    .btn-secondary:visited,
+    .btn-secondary:focus {
         background-color: #D1D7E0;
         border-color: #D1D7E0;
         color: #262234 !important;
-
     }
 
     div.progress {
@@ -273,15 +298,13 @@
         background-color: rgb(172, 29, 255) !important;
     }
 
-    div.card {
-        height: 20rem !important;
-
-    }
-
     div.card-body {
         overflow-y: auto;
     }
 
+    #text-area {
+        min-height: 20rem !important;
+    }
     .card-text {
         white-space: pre !important;
     }
@@ -322,6 +345,19 @@
     .card-text {
         font-size: 1.25rem !important;
     }
+
+    #generate-button {
+        width: 10rem !important;
+    }
+    #cancel-button {
+        width: 10rem !important;
+    }
+
+    #spinner {
+        color: #262234 !important;
+    }
+    
+
 </style>
 
 </html>
