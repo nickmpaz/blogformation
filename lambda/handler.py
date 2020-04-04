@@ -24,7 +24,6 @@ OK = {
 }
 
 
-
 def send_to_connection(message, data, event):
     if PROD:
         payload = json.dumps(
