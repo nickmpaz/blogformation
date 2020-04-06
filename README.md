@@ -10,7 +10,7 @@ features unsupported by terraform). The backend is written in Python.
 
 ## Architecture
 
-![Alt text](./img/blogformation.svg)
+![Alt text](img/Blogformation.svg)
 <img src="img/blogformation.svg">
 
 
