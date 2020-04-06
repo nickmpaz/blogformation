@@ -136,7 +136,7 @@ resource "aws_cloudformation_stack" "cs" {
     rootdomainname = var.root_domain_name
     hostedzone = data.aws_route53_zone.external.id
   }
-  template_body = file("./websocket-template.json")
+  template_body = file("./backend-stack.json")
   
   capabilities = ["CAPABILITY_AUTO_EXPAND", "CAPABILITY_IAM"]
 }
