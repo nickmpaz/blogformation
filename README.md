@@ -13,7 +13,8 @@ features unsupported by terraform). The backend is written in Python.
 ## Blog Generation 
 
 In it's current state, the blog generation algorithm is not complete; it is 
-more of a proof of concept than anything. It uses the following pseudocode:
+more of a proof of concept than anything. It's described by the following 
+pseudocode:
 
 ```
 - For each commit:
