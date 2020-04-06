@@ -10,6 +10,8 @@ features unsupported by terraform). The backend is written in Python.
 
 ## Architecture
 
+![architecture](img/blogformation.svg)
+
 ## Blog Generation 
 
 In it's current state, the blog generation algorithm is not complete; it is 
