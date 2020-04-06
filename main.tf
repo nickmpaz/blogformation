@@ -1,17 +1,5 @@
 provider "aws" {
-  region = "us-east-1"
-}
-
-data "aws_route53_zone" "external" {
-  name = "blogformation.net"
-}
-
-variable "www_domain_name" {
-  default = "www.blogformation.net"
-}
-
-variable "root_domain_name" {
-  default = "blogformation.net"
+  region = var.region
 }
 
 resource "aws_s3_bucket" "www" {
