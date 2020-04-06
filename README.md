@@ -4,15 +4,17 @@
 
 Blogformation is a serverless web application. The user supplies a public git
 repository, and the application generates a blog-style code tutorial from the
-project's commit history. Blogformation uses AWS for it's cloud architecture, 
-and its infrastructure is implemented with Terraform (and Cloudformation for
-features unsupported by terraform). The backend is written in Python.
+project's commit history. 
 
-## Architecture
+Blogformation uses AWS for it's cloud architecture, and its infrastructure is 
+implemented with Terraform (and Cloudformation for features unsupported by 
+terraform). The backend is written in Python.
 
-![Alt text](img/Blogformation.svg)
-<img src="img/blogformation.svg">
-
+Blogformation is a static site that is served from an S3 Bucket over https via 
+a Cloudfront Distribution. When a user submits a git repository, the site opens
+a websocket to an API Gateway which integrates with a Lambda Function.  The 
+function generates the blog, and communicates it's progress and finally the blog
+itself over the websocket.
 
 ## Blog Generation 
 
